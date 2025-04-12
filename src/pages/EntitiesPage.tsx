@@ -13,6 +13,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 interface Entity {
   id: string;
@@ -86,6 +87,8 @@ const getStatusBadge = (status: Entity["status"]) => {
 const EntitiesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<Entity["status"] | "all">("all");
+  const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const filteredEntities = useMemo(() => {
     return MOCK_ENTITIES.filter(entity => {
@@ -100,6 +103,11 @@ const EntitiesPage = () => {
       return matchesSearch && matchesStatus;
     });
   }, [searchQuery, statusFilter]);
+
+  const handleViewDetails = (entity: Entity) => {
+    setSelectedEntity(entity);
+    setIsDetailsOpen(true);
+  };
 
   return (
     <div className="space-y-4 p-4">
@@ -170,7 +178,12 @@ const EntitiesPage = () => {
                   <TableCell>{getStatusBadge(entity.status)}</TableCell>
                   <TableCell className="hidden md:table-cell">{entity.last_interaction}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => handleViewDetails(entity)}
+                      aria-label="Ver detalles"
+                    >
                       <EyeIcon className="h-4 w-4" />
                     </Button>
                   </TableCell>
@@ -180,6 +193,57 @@ const EntitiesPage = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Diálogo de detalles de la entidad */}
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Detalles de la Entidad</DialogTitle>
+            <DialogDescription>
+              Información completa de la entidad seleccionada
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedEntity && (
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <p className="text-sm font-medium col-span-1">Nombre:</p>
+                <p className="col-span-3">{selectedEntity.full_name}</p>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <p className="text-sm font-medium col-span-1">Documento:</p>
+                <p className="col-span-3">{selectedEntity.document_id}</p>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <p className="text-sm font-medium col-span-1">Email:</p>
+                <p className="col-span-3">{selectedEntity.email}</p>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <p className="text-sm font-medium col-span-1">Teléfono:</p>
+                <p className="col-span-3">{selectedEntity.phone}</p>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <p className="text-sm font-medium col-span-1">Estado:</p>
+                <p className="col-span-3">{getStatusBadge(selectedEntity.status)}</p>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <p className="text-sm font-medium col-span-1">Última interacción:</p>
+                <p className="col-span-3">{selectedEntity.last_interaction}</p>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter className="sm:justify-start">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setIsDetailsOpen(false)}
+            >
+              Cerrar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
