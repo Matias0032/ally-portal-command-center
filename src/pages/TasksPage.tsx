@@ -1,69 +1,46 @@
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Filter, ChevronDown, ChevronUp } from "lucide-react";
+import { Search, Filter, PlayCircle, StopCircle, CheckCircle2, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 
 interface Task {
   id: string;
+  title: string;
   agent: string;
-  entity_name: string;
-  description: string;
-  status: "completed" | "in_progress" | "failed" | "pending";
+  status: "in_progress" | "completed" | "failed" | "pending";
   created_at: string;
-  updated_at: string;
+  entity_name: string;
 }
 
 const MOCK_TASKS: Task[] = [
   {
-    id: "task-001",
-    agent: "payment-reminder",
-    entity_name: "Juan Pérez",
-    description: "Recordatorio de pago próximo vencimiento",
+    id: "1",
+    title: "Confirmación de documento",
+    agent: "Aura-Validate",
     status: "completed",
-    created_at: "2025-04-10 09:15",
-    updated_at: "2025-04-10 09:20"
+    created_at: "2025-04-10 14:23",
+    entity_name: "Juan Pérez"
   },
   {
-    id: "task-002",
-    agent: "document-verification",
-    entity_name: "María García",
-    description: "Verificación de documentos de identidad",
+    id: "2", 
+    title: "Solicitud de crédito",
+    agent: "Aura-Credit",
     status: "in_progress",
-    created_at: "2025-04-11 11:30",
-    updated_at: "2025-04-11 11:45"
+    created_at: "2025-04-11 09:45",
+    entity_name: "María García"
   },
-  {
-    id: "task-003",
-    agent: "payment-processing",
-    entity_name: "Carlos Rodríguez",
-    description: "Procesamiento de pago recibido",
-    status: "failed",
-    created_at: "2025-04-09 14:20",
-    updated_at: "2025-04-09 14:35"
-  },
-  {
-    id: "task-004",
-    agent: "debt-restructuring",
-    entity_name: "Ana Martínez",
-    description: "Análisis para reestructuración de deuda",
-    status: "pending",
-    created_at: "2025-04-11 10:05",
-    updated_at: "2025-04-11 10:05"
-  },
-  {
-    id: "task-005",
-    agent: "customer-survey",
-    entity_name: "Roberto Sánchez",
-    description: "Encuesta de satisfacción post-pago",
-    status: "completed",
-    created_at: "2025-04-10 16:10",
-    updated_at: "2025-04-10 16:25"
-  }
+  // Add more mock tasks
 ];
 
 const getStatusBadge = (status: Task["status"]) => {
@@ -73,27 +50,44 @@ const getStatusBadge = (status: Task["status"]) => {
     case "in_progress":
       return <Badge variant="default" className="bg-blue-500">En Progreso</Badge>;
     case "failed":
-      return <Badge variant="destructive">Fallida</Badge>;
+      return <Badge variant="default" className="bg-red-500">Fallida</Badge>;
     case "pending":
-      return <Badge variant="outline">Pendiente</Badge>;
+      return <Badge variant="default" className="bg-amber-500">Pendiente</Badge>;
+  }
+};
+
+const getStatusIcon = (status: Task["status"]) => {
+  switch (status) {
+    case "completed": return <CheckCircle2 className="text-green-500 h-5 w-5" />;
+    case "in_progress": return <PlayCircle className="text-blue-500 h-5 w-5" />;
+    case "failed": return <XCircle className="text-red-500 h-5 w-5" />;
+    case "pending": return <StopCircle className="text-amber-500 h-5 w-5" />;
   }
 };
 
 const TasksPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [expandedTask, setExpandedTask] = useState<string | null>(null);
-  
-  const toggleTaskExpand = (taskId: string) => {
-    setExpandedTask(expandedTask === taskId ? null : taskId);
-  };
-  
+  const [statusFilter, setStatusFilter] = useState<Task["status"] | "all">("all");
+
+  const filteredTasks = useMemo(() => {
+    return MOCK_TASKS.filter(task => {
+      const matchesSearch = 
+        task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        task.agent.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        task.entity_name.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesStatus = statusFilter === "all" || task.status === statusFilter;
+      
+      return matchesSearch && matchesStatus;
+    });
+  }, [searchQuery, statusFilter]);
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-4">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Tareas</h1>
         <p className="text-muted-foreground">
-          Monitoree y gestione las tareas del sistema Aura
+          Monitoree y gestione los workflows y tareas de Aura
         </p>
       </div>
       
@@ -103,22 +97,25 @@ const TasksPage = () => {
             <div>
               <CardTitle>Lista de Tareas</CardTitle>
               <CardDescription>
-                Visualice las tareas actuales y pasadas con su estado
+                Visualice y filtre tareas por título, agente o entidad
               </CardDescription>
             </div>
             <div className="flex flex-col space-y-2 md:flex-row md:space-x-2 md:space-y-0">
-              <div className="relative">
+              <div className="relative flex-grow">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
                   placeholder="Buscar tarea..."
-                  className="pl-8 w-full md:w-[250px]"
+                  className="pl-8 w-full md:w-[300px]"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full md:w-[180px]">
+              <Select 
+                value={statusFilter} 
+                onValueChange={(value: Task["status"] | "all") => setStatusFilter(value)}
+              >
+                <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filtrar por estado" />
                 </SelectTrigger>
                 <SelectContent>
@@ -136,112 +133,28 @@ const TasksPage = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead style={{ width: "40px" }}></TableHead>
-                <TableHead>ID</TableHead>
-                <TableHead>Agente</TableHead>
-                <TableHead className="hidden md:table-cell">Entidad</TableHead>
-                <TableHead className="hidden lg:table-cell">Descripción</TableHead>
                 <TableHead>Estado</TableHead>
-                <TableHead className="hidden md:table-cell">Creación</TableHead>
+                <TableHead>Título</TableHead>
+                <TableHead>Agente</TableHead>
+                <TableHead>Entidad</TableHead>
+                <TableHead>Fecha Creación</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {MOCK_TASKS.map((task) => (
-                <>
-                  <TableRow key={task.id} className={expandedTask === task.id ? "border-b-0" : ""}>
-                    <TableCell>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => toggleTaskExpand(task.id)}
-                        className="h-8 w-8"
-                      >
-                        {expandedTask === task.id ? (
-                          <ChevronUp className="h-4 w-4" />
-                        ) : (
-                          <ChevronDown className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </TableCell>
-                    <TableCell className="font-medium">{task.id}</TableCell>
-                    <TableCell>{task.agent}</TableCell>
-                    <TableCell className="hidden md:table-cell">{task.entity_name}</TableCell>
-                    <TableCell className="hidden lg:table-cell">{task.description}</TableCell>
-                    <TableCell>{getStatusBadge(task.status)}</TableCell>
-                    <TableCell className="hidden md:table-cell">{task.created_at}</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">Ver Logs</Button>
-                    </TableCell>
-                  </TableRow>
-                  {expandedTask === task.id && (
-                    <TableRow className="bg-muted/50">
-                      <TableCell colSpan={8} className="p-4">
-                        <div className="space-y-2">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <h4 className="text-sm font-semibold">Detalles de la Tarea</h4>
-                              <div className="grid grid-cols-2 gap-2 mt-2">
-                                <div className="text-sm text-muted-foreground">ID:</div>
-                                <div className="text-sm">{task.id}</div>
-                                <div className="text-sm text-muted-foreground">Agente:</div>
-                                <div className="text-sm">{task.agent}</div>
-                                <div className="text-sm text-muted-foreground">Entidad:</div>
-                                <div className="text-sm">{task.entity_name}</div>
-                                <div className="text-sm text-muted-foreground">Estado:</div>
-                                <div className="text-sm">{getStatusBadge(task.status)}</div>
-                              </div>
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-semibold">Línea de Tiempo</h4>
-                              <div className="mt-2 space-y-2">
-                                <div className="flex items-start gap-2 text-sm">
-                                  <div className="h-5 w-5 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                                    1
-                                  </div>
-                                  <div>
-                                    <p className="font-medium">Tarea creada</p>
-                                    <p className="text-xs text-muted-foreground">{task.created_at}</p>
-                                  </div>
-                                </div>
-                                <div className="flex items-start gap-2 text-sm">
-                                  <div className="h-5 w-5 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                                    2
-                                  </div>
-                                  <div>
-                                    <p className="font-medium">Procesamiento iniciado</p>
-                                    <p className="text-xs text-muted-foreground">{task.created_at}</p>
-                                  </div>
-                                </div>
-                                <div className="flex items-start gap-2 text-sm">
-                                  <div className={`h-5 w-5 rounded-full ${
-                                    task.status === "completed" ? "bg-green-500" : 
-                                    task.status === "failed" ? "bg-red-500" : 
-                                    "bg-blue-500"
-                                  } flex items-center justify-center text-white`}>
-                                    3
-                                  </div>
-                                  <div>
-                                    <p className="font-medium">
-                                      {task.status === "completed" ? "Completada con éxito" : 
-                                       task.status === "failed" ? "Falló la ejecución" : 
-                                       "En ejecución"}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">{task.updated_at}</p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex justify-end space-x-2">
-                            <Button variant="outline" size="sm">Reintentar</Button>
-                            <Button size="sm">Intervenir</Button>
-                          </div>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </>
+              {filteredTasks.map((task) => (
+                <TableRow key={task.id}>
+                  <TableCell>{getStatusIcon(task.status)}</TableCell>
+                  <TableCell className="font-medium">{task.title}</TableCell>
+                  <TableCell>{task.agent}</TableCell>
+                  <TableCell>{task.entity_name}</TableCell>
+                  <TableCell>{task.created_at}</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="sm">
+                      Ver Detalles
+                    </Button>
+                  </TableCell>
+                </TableRow>
               ))}
             </TableBody>
           </Table>

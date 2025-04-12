@@ -1,11 +1,18 @@
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, EyeIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 
 interface Entity {
   id: string;
@@ -78,9 +85,24 @@ const getStatusBadge = (status: Entity["status"]) => {
 
 const EntitiesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  
+  const [statusFilter, setStatusFilter] = useState<Entity["status"] | "all">("all");
+
+  const filteredEntities = useMemo(() => {
+    return MOCK_ENTITIES.filter(entity => {
+      const matchesSearch = 
+        entity.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        entity.document_id.includes(searchQuery) ||
+        entity.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        entity.phone.includes(searchQuery);
+      
+      const matchesStatus = statusFilter === "all" || entity.status === statusFilter;
+      
+      return matchesSearch && matchesStatus;
+    });
+  }, [searchQuery, statusFilter]);
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-4">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Entidades</h1>
         <p className="text-muted-foreground">
@@ -98,7 +120,7 @@ const EntitiesPage = () => {
               </CardDescription>
             </div>
             <div className="flex flex-col space-y-2 md:flex-row md:space-x-2 md:space-y-0">
-              <div className="relative">
+              <div className="relative flex-grow">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
@@ -108,10 +130,20 @@ const EntitiesPage = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Button variant="outline" size="icon">
-                <Filter className="h-4 w-4" />
-                <span className="sr-only">Filtrar</span>
-              </Button>
+              <Select 
+                value={statusFilter} 
+                onValueChange={(value: Entity["status"] | "all") => setStatusFilter(value)}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filtrar por estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="active">Activos</SelectItem>
+                  <SelectItem value="inactive">Inactivos</SelectItem>
+                  <SelectItem value="pending">Pendientes</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardHeader>
@@ -129,7 +161,7 @@ const EntitiesPage = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {MOCK_ENTITIES.map((entity) => (
+              {filteredEntities.map((entity) => (
                 <TableRow key={entity.id}>
                   <TableCell className="font-medium">{entity.full_name}</TableCell>
                   <TableCell>{entity.document_id}</TableCell>
@@ -138,7 +170,9 @@ const EntitiesPage = () => {
                   <TableCell>{getStatusBadge(entity.status)}</TableCell>
                   <TableCell className="hidden md:table-cell">{entity.last_interaction}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">Ver</Button>
+                    <Button variant="ghost" size="sm">
+                      <EyeIcon className="h-4 w-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
