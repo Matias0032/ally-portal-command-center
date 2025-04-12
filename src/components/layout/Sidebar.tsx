@@ -4,14 +4,13 @@ import {
   SidebarContent, 
   SidebarFooter, 
   SidebarHeader, 
-  SidebarTrigger,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarGroup,
   SidebarGroupLabel,
 } from "@/components/ui/sidebar";
-import { BarChart3, Home, Search, Users, ClipboardList, AlertCircle, Settings } from "lucide-react";
+import { BarChart3, Home, Search, Users, ClipboardList, AlertCircle, Settings, Cpu, Library } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 export const AppSidebar = () => {
@@ -77,6 +76,29 @@ export const AppSidebar = () => {
                 <Link to="/alerts">
                   <AlertCircle className="h-5 w-5" />
                   <span>Alertas</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>AI Agents</SidebarGroupLabel>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={isActive("/agent-designer")}>
+                <Link to="/agent-designer">
+                  <Cpu className="h-5 w-5" />
+                  <span>Agent Designer</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={isActive("/agent-library")}>
+                <Link to="/agent-library">
+                  <Library className="h-5 w-5" />
+                  <span>Agent Library</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

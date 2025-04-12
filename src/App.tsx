@@ -10,6 +10,8 @@ import EntitiesPage from "./pages/EntitiesPage";
 import TasksPage from "./pages/TasksPage";
 import ReportsPage from "./pages/ReportsPage";
 import AlertsPage from "./pages/AlertsPage";
+import AgentDesignerPage from "./pages/AgentDesignerPage";
+import AgentLibraryPage from "./pages/AgentLibraryPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
 const queryClient = new QueryClient();
@@ -44,6 +46,16 @@ const App = () => (
           <Route path="/alerts" element={
             <MainLayout>
               <AlertsPage />
+            </MainLayout>
+          } />
+          <Route path="/agent-designer" element={
+            <MainLayout>
+              <AgentDesignerPage />
+            </MainLayout>
+          } />
+          <Route path="/agent-library" element={
+            <MainLayout>
+              <AgentLibraryPage />
             </MainLayout>
           } />
           <Route path="/settings" element={
