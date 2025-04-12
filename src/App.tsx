@@ -8,6 +8,8 @@ import { MainLayout } from "./components/layout/MainLayout";
 import Dashboard from "./pages/Dashboard";
 import EntitiesPage from "./pages/EntitiesPage";
 import TasksPage from "./pages/TasksPage";
+import ReportsPage from "./pages/ReportsPage";
+import AlertsPage from "./pages/AlertsPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
 const queryClient = new QueryClient();
@@ -34,7 +36,26 @@ const App = () => (
               <TasksPage />
             </MainLayout>
           } />
-          {/* Las otras rutas mencionadas en el sidebar (reports, alerts, settings) se pueden añadir aquí */}
+          <Route path="/reports" element={
+            <MainLayout>
+              <ReportsPage />
+            </MainLayout>
+          } />
+          <Route path="/alerts" element={
+            <MainLayout>
+              <AlertsPage />
+            </MainLayout>
+          } />
+          <Route path="/settings" element={
+            <MainLayout>
+              <div className="p-4">
+                <h1 className="text-3xl font-bold tracking-tight">Configuración</h1>
+                <p className="text-muted-foreground mt-2">
+                  Configuración del sistema (página en desarrollo)
+                </p>
+              </div>
+            </MainLayout>
+          } />
           
           {/* Ruta 404 para páginas no encontradas */}
           <Route path="*" element={<NotFoundPage />} />
